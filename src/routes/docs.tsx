@@ -68,12 +68,6 @@ const ENDPOINTS = [
     path: "/api/bridge?fromChain=ethereum&toChain=base&asset=native&amount=0.01",
     detail: "Cross-chain bridge quote. asset=native or stable. Add fromAddress to build the wallet transaction.",
   },
-  {
-    method: "POST",
-    path: "/api/ai",
-    detail:
-      'Body: { "model": "gemini-3.1-flash-lite", "messages": [{ "role": "user", "content": "What is T3X?" }] }. Streams an answer. Claude, Gemini, Grok, GPT, and the other gateway models. The key stays on the server.',
-  },
 ];
 
 function DocsPage() {
@@ -87,15 +81,13 @@ function DocsPage() {
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Same data the scanner uses.</h1>
         <p className="mt-2 max-w-2xl text-sm text-pretty text-muted">
           No key for chain reads. JSON in, JSON out. Solana routes stay the same. Network accepts a chain id, and /api/gas,
-          /api/balances, /api/evm-quote, and /api/bridge cover the other networks. /api/ai streams a model answer. Public RPCs can lag.
+          /api/balances, /api/evm-quote, and /api/bridge cover the other networks. Public RPCs can lag.
         </p>
       </div>
       <ul className="flex flex-col gap-3">
         {ENDPOINTS.map((endpoint) => {
           const sample =
-            endpoint.path === "/api/ai"
-              ? `curl -X POST ${origin}/api/ai \\\n  -H 'content-type: application/json' \\\n  -d '{"model":"gemini-3.1-flash-lite","messages":[{"role":"user","content":"What is T3X?"}]}'`
-              : endpoint.method === "POST"
+            endpoint.method === "POST"
               ? `curl -X POST ${origin}${endpoint.path.split(" ")[0]} \\\n  -H 'content-type: application/json' \\\n  -d '{"input":"SOL","output":"USDC","amount":"0.1","slippageBps":50,"userPublicKey":"YOUR_WALLET"}'`
               : `curl ${origin}${endpoint.path}`;
           const href = endpoint.path.includes("?") || endpoint.method === "POST" ? endpoint.path : endpoint.path;

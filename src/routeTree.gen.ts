@@ -10,12 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AiRouteImport } from './routes/ai'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as RouterRouteImport } from './routes/router'
 import { Route as AddressAddressRouteImport } from './routes/address.$address'
 import { Route as ApiAccountRouteImport } from './routes/api/account'
-import { Route as ApiAiRouteImport } from './routes/api/ai'
 import { Route as ApiBalancesRouteImport } from './routes/api/balances'
 import { Route as ApiBlockRouteImport } from './routes/api/block'
 import { Route as ApiBlocksRouteImport } from './routes/api/blocks'
@@ -38,11 +36,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AiRoute = AiRouteImport.update({
-  id: '/ai',
-  path: '/ai',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
@@ -61,11 +54,6 @@ const AddressAddressRoute = AddressAddressRouteImport.update({
 const ApiAccountRoute = ApiAccountRouteImport.update({
   id: '/api/account',
   path: '/api/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAiRoute = ApiAiRouteImport.update({
-  id: '/api/ai',
-  path: '/api/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBalancesRoute = ApiBalancesRouteImport.update({
@@ -151,12 +139,10 @@ const CChainTxHashRoute = CChainTxHashRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/ai': typeof AiRoute
   '/docs': typeof DocsRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
-  '/api/ai': typeof ApiAiRoute
   '/api/balances': typeof ApiBalancesRoute
   '/api/block': typeof ApiBlockRoute
   '/api/blocks': typeof ApiBlocksRoute
@@ -176,12 +162,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/ai': typeof AiRoute
   '/docs': typeof DocsRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
-  '/api/ai': typeof ApiAiRoute
   '/api/balances': typeof ApiBalancesRoute
   '/api/block': typeof ApiBlockRoute
   '/api/blocks': typeof ApiBlocksRoute
@@ -202,12 +186,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/ai': typeof AiRoute
   '/docs': typeof DocsRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
-  '/api/ai': typeof ApiAiRoute
   '/api/balances': typeof ApiBalancesRoute
   '/api/block': typeof ApiBlockRoute
   '/api/blocks': typeof ApiBlocksRoute
@@ -229,12 +211,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/ai'
     | '/docs'
     | '/router'
     | '/address/$address'
     | '/api/account'
-    | '/api/ai'
     | '/api/balances'
     | '/api/block'
     | '/api/blocks'
@@ -254,12 +234,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/ai'
     | '/docs'
     | '/router'
     | '/address/$address'
     | '/api/account'
-    | '/api/ai'
     | '/api/balances'
     | '/api/block'
     | '/api/blocks'
@@ -279,12 +257,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/ai'
     | '/docs'
     | '/router'
     | '/address/$address'
     | '/api/account'
-    | '/api/ai'
     | '/api/balances'
     | '/api/block'
     | '/api/blocks'
@@ -305,12 +281,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AiRoute: typeof AiRoute
   DocsRoute: typeof DocsRoute
   RouterRoute: typeof RouterRoute
   AddressAddressRoute: typeof AddressAddressRoute
   ApiAccountRoute: typeof ApiAccountRoute
-  ApiAiRoute: typeof ApiAiRoute
   ApiBalancesRoute: typeof ApiBalancesRoute
   ApiBlockRoute: typeof ApiBlockRoute
   ApiBlocksRoute: typeof ApiBlocksRoute
@@ -336,13 +310,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai': {
-      id: '/ai'
-      path: '/ai'
-      fullPath: '/ai'
-      preLoaderRoute: typeof AiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs': {
@@ -371,13 +338,6 @@ declare module '@tanstack/react-router' {
       path: '/api/account'
       fullPath: '/api/account'
       preLoaderRoute: typeof ApiAccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ai': {
-      id: '/api/ai'
-      path: '/api/ai'
-      fullPath: '/api/ai'
-      preLoaderRoute: typeof ApiAiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/balances': {
@@ -497,12 +457,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AiRoute: AiRoute,
   DocsRoute: DocsRoute,
   RouterRoute: RouterRoute,
   AddressAddressRoute: AddressAddressRoute,
   ApiAccountRoute: ApiAccountRoute,
-  ApiAiRoute: ApiAiRoute,
   ApiBalancesRoute: ApiBalancesRoute,
   ApiBlockRoute: ApiBlockRoute,
   ApiBlocksRoute: ApiBlocksRoute,

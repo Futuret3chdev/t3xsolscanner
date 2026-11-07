@@ -106,16 +106,6 @@ function Home() {
       </section>
 
       <ScanBand />
-      <Link
-        to="/ai"
-        className="flex h-16 items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4"
-      >
-        <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold">Ask Claude, Gemini, or Grok</span>
-          <span className="block truncate text-xs text-muted">One gateway. Wallets, bridges, and the $20 airdrop.</span>
-        </span>
-        <span className="shrink-0 text-sm font-semibold text-accent">Ask</span>
-      </Link>
       <SavedScans />
 
       <div className="grid gap-4 lg:grid-cols-5">

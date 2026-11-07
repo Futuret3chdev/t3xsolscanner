@@ -10,7 +10,6 @@ function NavLinks() {
   const items = [
     { to: "/", label: "Explorer" },
     { to: "/router", label: "Router" },
-    { to: "/ai", label: "Ask" },
     { to: "/docs", label: "API" },
   ] as const;
   return (
