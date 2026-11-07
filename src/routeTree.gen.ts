@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BoardRouteImport } from './routes/board'
 import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as LoginRouteImport } from './routes/login'
@@ -23,6 +24,7 @@ import { Route as ApiBridgeRouteImport } from './routes/api/bridge'
 import { Route as ApiEvmQuoteRouteImport } from './routes/api/evm-quote'
 import { Route as ApiGasRouteImport } from './routes/api/gas'
 import { Route as ApiNetworkRouteImport } from './routes/api/network'
+import { Route as ApiPublicClaimsRouteImport } from './routes/api/public-claims'
 import { Route as ApiQuoteRouteImport } from './routes/api/quote'
 import { Route as ApiSwapRouteImport } from './routes/api/swap'
 import { Route as ApiTrendingRouteImport } from './routes/api/trending'
@@ -37,6 +39,11 @@ import { Route as CChainTxHashRouteImport } from './routes/c.$chain.tx.$hash'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoardRoute = BoardRouteImport.update({
+  id: '/board',
+  path: '/board',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClaimRoute = ClaimRouteImport.update({
@@ -104,6 +111,11 @@ const ApiNetworkRoute = ApiNetworkRouteImport.update({
   path: '/api/network',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicClaimsRoute = ApiPublicClaimsRouteImport.update({
+  id: '/api/public-claims',
+  path: '/api/public-claims',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiQuoteRoute = ApiQuoteRouteImport.update({
   id: '/api/quote',
   path: '/api/quote',
@@ -157,6 +169,7 @@ const CChainTxHashRoute = CChainTxHashRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/claim': typeof ClaimRoute
   '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
@@ -170,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/api/evm-quote': typeof ApiEvmQuoteRoute
   '/api/gas': typeof ApiGasRoute
   '/api/network': typeof ApiNetworkRoute
+  '/api/public-claims': typeof ApiPublicClaimsRoute
   '/api/quote': typeof ApiQuoteRoute
   '/api/swap': typeof ApiSwapRoute
   '/api/trending': typeof ApiTrendingRoute
@@ -183,6 +197,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/claim': typeof ClaimRoute
   '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
@@ -196,6 +211,7 @@ export interface FileRoutesByTo {
   '/api/evm-quote': typeof ApiEvmQuoteRoute
   '/api/gas': typeof ApiGasRoute
   '/api/network': typeof ApiNetworkRoute
+  '/api/public-claims': typeof ApiPublicClaimsRoute
   '/api/quote': typeof ApiQuoteRoute
   '/api/swap': typeof ApiSwapRoute
   '/api/trending': typeof ApiTrendingRoute
@@ -210,6 +226,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/claim': typeof ClaimRoute
   '/docs': typeof DocsRoute
   '/login': typeof LoginRoute
@@ -223,6 +240,7 @@ export interface FileRoutesById {
   '/api/evm-quote': typeof ApiEvmQuoteRoute
   '/api/gas': typeof ApiGasRoute
   '/api/network': typeof ApiNetworkRoute
+  '/api/public-claims': typeof ApiPublicClaimsRoute
   '/api/quote': typeof ApiQuoteRoute
   '/api/swap': typeof ApiSwapRoute
   '/api/trending': typeof ApiTrendingRoute
@@ -238,6 +256,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/board'
     | '/claim'
     | '/docs'
     | '/login'
@@ -251,6 +270,7 @@ export interface FileRouteTypes {
     | '/api/evm-quote'
     | '/api/gas'
     | '/api/network'
+    | '/api/public-claims'
     | '/api/quote'
     | '/api/swap'
     | '/api/trending'
@@ -264,6 +284,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/board'
     | '/claim'
     | '/docs'
     | '/login'
@@ -277,6 +298,7 @@ export interface FileRouteTypes {
     | '/api/evm-quote'
     | '/api/gas'
     | '/api/network'
+    | '/api/public-claims'
     | '/api/quote'
     | '/api/swap'
     | '/api/trending'
@@ -290,6 +312,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/board'
     | '/claim'
     | '/docs'
     | '/login'
@@ -303,6 +326,7 @@ export interface FileRouteTypes {
     | '/api/evm-quote'
     | '/api/gas'
     | '/api/network'
+    | '/api/public-claims'
     | '/api/quote'
     | '/api/swap'
     | '/api/trending'
@@ -317,6 +341,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BoardRoute: typeof BoardRoute
   ClaimRoute: typeof ClaimRoute
   DocsRoute: typeof DocsRoute
   LoginRoute: typeof LoginRoute
@@ -330,6 +355,7 @@ export interface RootRouteChildren {
   ApiEvmQuoteRoute: typeof ApiEvmQuoteRoute
   ApiGasRoute: typeof ApiGasRoute
   ApiNetworkRoute: typeof ApiNetworkRoute
+  ApiPublicClaimsRoute: typeof ApiPublicClaimsRoute
   ApiQuoteRoute: typeof ApiQuoteRoute
   ApiSwapRoute: typeof ApiSwapRoute
   ApiTrendingRoute: typeof ApiTrendingRoute
@@ -349,6 +375,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/board': {
+      id: '/board'
+      path: '/board'
+      fullPath: '/board'
+      preLoaderRoute: typeof BoardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/claim': {
@@ -442,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiNetworkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public-claims': {
+      id: '/api/public-claims'
+      path: '/api/public-claims'
+      fullPath: '/api/public-claims'
+      preLoaderRoute: typeof ApiPublicClaimsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/quote': {
       id: '/api/quote'
       path: '/api/quote'
@@ -517,6 +557,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BoardRoute: BoardRoute,
   ClaimRoute: ClaimRoute,
   DocsRoute: DocsRoute,
   LoginRoute: LoginRoute,
@@ -530,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEvmQuoteRoute: ApiEvmQuoteRoute,
   ApiGasRoute: ApiGasRoute,
   ApiNetworkRoute: ApiNetworkRoute,
+  ApiPublicClaimsRoute: ApiPublicClaimsRoute,
   ApiQuoteRoute: ApiQuoteRoute,
   ApiSwapRoute: ApiSwapRoute,
   ApiTrendingRoute: ApiTrendingRoute,

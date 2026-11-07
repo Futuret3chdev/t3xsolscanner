@@ -161,6 +161,38 @@ async function writeLedger(token: string, ledger: Ledger) {
   }
 }
 
+export async function publicClaimRows() {
+  try {
+    const [rows] = await db().query(
+      `SELECT p.username AS username,
+              COALESCE(SUM(f.usd), 0) AS usd,
+              COALESCE(SUM(c.units), 0) AS claimed
+       FROM t3x_profiles p
+       LEFT JOIN t3x_fills f ON f.user_id = p.user_id
+       LEFT JOIN t3x_claims c ON c.user_id = p.user_id
+       GROUP BY p.username
+       ORDER BY usd DESC
+       LIMIT 100`,
+    );
+    const list = Array.isArray(rows) ? rows : [];
+    return {
+      ok: true as const,
+      rows: list.map((row) => {
+        const item = row as { username?: string; usd?: number | string; claimed?: number | string };
+        const usd = Number(item.usd || 0);
+        return {
+          username: String(item.username || "account"),
+          usd,
+          earned: Math.floor(usd / UNIT),
+          claimed: Number(item.claimed || 0),
+        };
+      }),
+    };
+  } catch {
+    return { ok: false as const, rows: [], error: "The public board is not reachable yet." };
+  }
+}
+
 function viewOf(ledger: Ledger) {
   const total = ledger.fills.reduce((sum, row) => sum + Number(row.usd || 0), 0);
   const earned = Math.floor(total / UNIT);

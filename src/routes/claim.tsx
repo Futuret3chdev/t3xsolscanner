@@ -108,7 +108,7 @@ function ClaimPage() {
           <p className="text-xs font-semibold tracking-widest text-accent uppercase">Airdrop</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Every $20 earns T3X</h1>
           <p className="mt-2 text-sm text-pretty text-muted">
-            Signed in as {account.username || account.email}. Swap or bridge, then the volume lands here. T3X will be paid once it becomes available.
+            Signed in as {account.username || account.email}. Swap or bridge, then the volume lands here. T3X will be paid once it becomes available. The same list is public on the claims page.
           </p>
         </div>
         <button type="button" onClick={() => writeAccount(null)} className="h-9 shrink-0 rounded-lg border border-line px-3 text-xs font-semibold">
@@ -118,7 +118,13 @@ function ClaimPage() {
 
       <section className="rounded-xl border border-accent/40 bg-accent/10 p-4">
         <p className="text-sm font-semibold">T3X will be paid once it becomes available.</p>
-        <p className="mt-1 text-sm text-pretty text-muted">A claim records what you have earned. It is not a payment yet.</p>
+        <p className="mt-1 text-sm text-pretty text-muted">
+          A claim records what you have earned. It is not a payment yet. The public list is on{" "}
+          <a className="text-accent" href="https://t3x.futuret3ch.com.au/claims">
+            the T3x claims page
+          </a>
+          .
+        </p>
       </section>
 
       <section className="rounded-xl border border-line bg-surface p-4">
