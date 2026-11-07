@@ -177,6 +177,30 @@ function viewOf(ledger: Ledger) {
   };
 }
 
+let profilesReady: Promise<void> | null = null;
+
+async function ensureProfiles() {
+  profilesReady ??= db()
+    .query(
+      `CREATE TABLE IF NOT EXISTS t3x_profiles (
+        user_id VARCHAR(64) PRIMARY KEY,
+        username VARCHAR(32) NOT NULL,
+        email VARCHAR(160) NOT NULL,
+        UNIQUE KEY username_unique (username)
+      )`,
+    )
+    .then(() => undefined)
+    .catch((err: unknown) => {
+      profilesReady = null;
+      throw err;
+    });
+  await profilesReady;
+}
+
+function cleanUsername(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+}
+
 function tokenOf(value: unknown): string {
   const row = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   return String(row.token ?? "").trim();
@@ -186,15 +210,20 @@ export const registerAccount = createServerFn({ method: "POST" })
   .validator((value: unknown) => {
     const row = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
     return {
+      username: cleanUsername(String(row.username ?? "")),
       email: String(row.email ?? "").trim().toLowerCase(),
       phone: String(row.phone ?? "").trim(),
       password: String(row.password ?? ""),
     };
   })
   .handler(async ({ data }) => {
+    if (data.username.length < 3) return { ok: false as const, error: "Username needs at least 3 letters or numbers." };
     if (!data.email || !data.phone || data.password.length < 8) {
       return { ok: false as const, error: "Email, phone, and a password of at least 8 characters are required." };
     }
+    await ensureProfiles();
+    const [taken] = await db().query("SELECT user_id FROM t3x_profiles WHERE username = ? LIMIT 1", [data.username]);
+    if (Array.isArray(taken) && taken.length) return { ok: false as const, error: "That username is taken." };
     const signup = await authJson("/signup", {
       method: "POST",
       body: JSON.stringify({ email: data.email, phone: data.phone, password: data.password }),
@@ -208,7 +237,12 @@ export const registerAccount = createServerFn({ method: "POST" })
     const user = verified.user as { id?: string; email?: string; phone?: string } | undefined;
     const token = typeof verified.token === "string" ? verified.token : "";
     if (!token || !user?.id) return { ok: false as const, error: "Account was created but sign-in did not start." };
-    return { ok: true as const, token, user: { id: user.id, email: user.email || data.email, phone: user.phone || data.phone } };
+    await db().query("INSERT INTO t3x_profiles (user_id, username, email) VALUES (?, ?, ?)", [user.id, data.username, data.email]);
+    return {
+      ok: true as const,
+      token,
+      user: { id: user.id, email: user.email || data.email, phone: user.phone || data.phone, username: data.username },
+    };
   });
 
 export const loginAccount = createServerFn({ method: "POST" })
@@ -217,15 +251,35 @@ export const loginAccount = createServerFn({ method: "POST" })
     return { email: String(row.email ?? "").trim(), password: String(row.password ?? "") };
   })
   .handler(async ({ data }) => {
-    if (!data.email || !data.password) return { ok: false as const, error: "Email and password are required." };
+    if (!data.email || !data.password) return { ok: false as const, error: "Username and password are required." };
+    await ensureProfiles();
+    let email = data.email;
+    let username = "";
+    if (!email.includes("@")) {
+      username = cleanUsername(email);
+      const [rows] = await db().query("SELECT email, username FROM t3x_profiles WHERE username = ? LIMIT 1", [username]);
+      const hit = Array.isArray(rows) ? (rows[0] as { email?: string; username?: string } | undefined) : undefined;
+      if (!hit?.email) return { ok: false as const, error: "No account with that username." };
+      email = hit.email;
+      username = hit.username || username;
+    }
     const body = await authJson("/login", {
       method: "POST",
-      body: JSON.stringify({ emailOrPhone: data.email, password: data.password }),
+      body: JSON.stringify({ emailOrPhone: email, password: data.password }),
     });
     const user = body.user as { id?: string; email?: string; phone?: string } | undefined;
     const token = typeof body.token === "string" ? body.token : "";
     if (!token || !user?.id) return { ok: false as const, error: "Sign-in did not return an account." };
-    return { ok: true as const, token, user: { id: user.id, email: user.email || data.email, phone: user.phone || "" } };
+    if (!username) {
+      const [rows] = await db().query("SELECT username FROM t3x_profiles WHERE user_id = ? OR email = ? LIMIT 1", [user.id, email]);
+      const hit = Array.isArray(rows) ? (rows[0] as { username?: string } | undefined) : undefined;
+      username = hit?.username || email.split("@")[0] || "account";
+    }
+    return {
+      ok: true as const,
+      token,
+      user: { id: user.id, email: user.email || email, phone: user.phone || "", username },
+    };
   });
 
 export const loadRemoteClaim = createServerFn({ method: "POST" })

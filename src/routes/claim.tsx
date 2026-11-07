@@ -108,7 +108,7 @@ function ClaimPage() {
           <p className="text-xs font-semibold tracking-widest text-accent uppercase">Airdrop</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Every $20 earns T3X</h1>
           <p className="mt-2 text-sm text-pretty text-muted">
-            Signed in as {account.email}. Swap or bridge, then the volume lands here. Claims stay pending until Futuret3ch sends them.
+            Signed in as {account.username || account.email}. Swap or bridge, then the volume lands here. Claims stay pending until Futuret3ch sends them.
           </p>
         </div>
         <button type="button" onClick={() => writeAccount(null)} className="h-9 shrink-0 rounded-lg border border-line px-3 text-xs font-semibold">

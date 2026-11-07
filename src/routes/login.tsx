@@ -14,6 +14,7 @@ function LoginPage() {
   const { next } = Route.useSearch();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"in" | "up">("up");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -26,8 +27,8 @@ function LoginPage() {
     setError("");
     const dest = next.startsWith("/") ? next : "/claim";
     try {
-      if (mode === "up") await registerAndSave({ email, phone, password });
-      else await loginAndSave({ email, password });
+      if (mode === "up") await registerAndSave({ username, email, phone, password });
+      else await loginAndSave({ email: username, password });
       await navigate({ to: dest });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");
@@ -59,16 +60,29 @@ function LoginPage() {
       </div>
       <form className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4" onSubmit={(event) => void onSubmit(event)}>
         <label className="text-xs font-medium tracking-wide text-muted uppercase">
-          Email
+          {mode === "up" ? "Username" : "Username or email"}
           <input
-            type="email"
             required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            autoComplete="username"
+            minLength={mode === "up" ? 3 : 1}
             className="mt-2 h-11 w-full rounded-lg border border-line bg-bg px-3 text-base text-fg outline-none focus-visible:border-accent"
           />
         </label>
+        {mode === "up" ? (
+          <label className="text-xs font-medium tracking-wide text-muted uppercase">
+            Email
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              className="mt-2 h-11 w-full rounded-lg border border-line bg-bg px-3 text-base text-fg outline-none focus-visible:border-accent"
+            />
+          </label>
+        ) : null}
         {mode === "up" ? (
           <label className="text-xs font-medium tracking-wide text-muted uppercase">
             Phone

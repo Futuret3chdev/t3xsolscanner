@@ -3,18 +3,32 @@ import { claimRemoteUnits, linkRemoteWallet, loadRemoteClaim, loginAccount, reco
 
 const KEY = "t3x-account";
 
-export type SavedAccount = { token: string; id: string; email: string; phone: string };
+export type SavedAccount = { token: string; id: string; email: string; phone: string; username: string };
+
+let cachedRaw: string | null | undefined;
+let cachedAccount: SavedAccount | null = null;
 
 function read(): SavedAccount | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") return cachedAccount;
+  let raw: string | null = null;
   try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SavedAccount;
-    return parsed?.token ? parsed : null;
+    raw = window.localStorage.getItem(KEY);
   } catch {
+    raw = null;
+  }
+  if (raw === cachedRaw) return cachedAccount;
+  cachedRaw = raw;
+  if (!raw) {
+    cachedAccount = null;
     return null;
   }
+  try {
+    const parsed = JSON.parse(raw) as SavedAccount;
+    cachedAccount = parsed?.token ? { ...parsed, username: parsed.username || parsed.email.split("@")[0] || "account" } : null;
+  } catch {
+    cachedAccount = null;
+  }
+  return cachedAccount;
 }
 
 function emit() {
@@ -49,16 +63,16 @@ function requireToken() {
   return account.token;
 }
 
-export async function registerAndSave(input: { email: string; phone: string; password: string }) {
+export async function registerAndSave(input: { username: string; email: string; phone: string; password: string }) {
   const result = await registerAccount({ data: input });
   if (!result.ok) throw new Error(result.error);
-  writeAccount({ token: result.token, id: result.user.id, email: result.user.email, phone: result.user.phone });
+  writeAccount({ token: result.token, id: result.user.id, email: result.user.email, phone: result.user.phone, username: result.user.username });
 }
 
 export async function loginAndSave(input: { email: string; password: string }) {
   const result = await loginAccount({ data: input });
   if (!result.ok) throw new Error(result.error);
-  writeAccount({ token: result.token, id: result.user.id, email: result.user.email, phone: result.user.phone });
+  writeAccount({ token: result.token, id: result.user.id, email: result.user.email, phone: result.user.phone, username: result.user.username });
 }
 
 export function loadMyClaim() {

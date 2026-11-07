@@ -115,7 +115,7 @@ function AuthSlot() {
   }
   return (
     <button type="button" onClick={() => writeAccount(null)} className="inline-flex h-9 max-w-28 items-center truncate rounded-lg px-2 text-xs font-semibold text-fg">
-      {account.email.split("@")[0]}
+      {account.username || account.email.split("@")[0]}
     </button>
   );
 }
