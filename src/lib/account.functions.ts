@@ -114,16 +114,28 @@ async function accountId(token: string): Promise<string> {
   return id;
 }
 
+function claimError(err: unknown): Error {
+  const message = err instanceof Error ? err.message : "";
+  if (message.includes("Access denied") || message.includes("ECONNREFUSED") || message.includes("ETIMEDOUT") || message.includes("ENOTFOUND")) {
+    return new Error("Claims are paused until HostGator allows this server. Add % under Remote Database Access.");
+  }
+  return err instanceof Error ? err : new Error("Claim database failed.");
+}
+
 async function readLedger(token: string): Promise<Ledger> {
   const userId = await accountId(token);
-  const conn = db();
-  const [fills] = await conn.query(
-    "SELECT id, tx, chain, kind, symbol, amount, address, usd, created_at FROM t3x_fills WHERE user_id = ? ORDER BY created_at ASC",
-    [userId],
-  );
-  const [wallets] = await conn.query("SELECT address, kind FROM t3x_wallets WHERE user_id = ?", [userId]);
-  const [claims] = await conn.query("SELECT id, units, status, created_at FROM t3x_claims WHERE user_id = ? ORDER BY created_at ASC", [userId]);
-  return asLedger({ fills, wallets, claims });
+  try {
+    const conn = db();
+    const [fills] = await conn.query(
+      "SELECT id, tx, chain, kind, symbol, amount, address, usd, created_at FROM t3x_fills WHERE user_id = ? ORDER BY created_at ASC",
+      [userId],
+    );
+    const [wallets] = await conn.query("SELECT address, kind FROM t3x_wallets WHERE user_id = ?", [userId]);
+    const [claims] = await conn.query("SELECT id, units, status, created_at FROM t3x_claims WHERE user_id = ? ORDER BY created_at ASC", [userId]);
+    return asLedger({ fills, wallets, claims });
+  } catch (err) {
+    throw claimError(err);
+  }
 }
 
 async function writeLedger(token: string, ledger: Ledger) {
@@ -155,7 +167,7 @@ async function writeLedger(token: string, ledger: Ledger) {
     await conn.commit();
   } catch (err) {
     await conn.rollback();
-    throw err;
+    throw claimError(err);
   } finally {
     conn.release();
   }
@@ -189,7 +201,7 @@ export async function publicClaimRows() {
       }),
     };
   } catch {
-    return { ok: false as const, rows: [], error: "The public board is not reachable yet." };
+    return { ok: false as const, rows: [], error: "Claims are paused until HostGator allows this server. Add % under Remote Database Access." };
   }
 }
 
