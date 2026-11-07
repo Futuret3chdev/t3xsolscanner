@@ -92,9 +92,9 @@ function ClaimPage() {
       <div className="mx-auto flex w-full max-w-md flex-col gap-3 px-4 py-8">
         <h1 className="text-3xl font-semibold tracking-tight">Sign in to claim T3X</h1>
         <p className="text-sm text-pretty text-muted">Every full $20 is recorded. T3X will be paid once it becomes available.</p>
-        <Link to="/login" search={{ next: "/claim" }} className="inline-flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-bg">
+        <a href="https://t3x.futuret3ch.com.au/login" className="inline-flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-bg">
           Register or sign in
-        </Link>
+        </a>
       </div>
     );
   }

@@ -108,9 +108,9 @@ function AuthSlot() {
   const account = useAccount();
   if (!account) {
     return (
-      <Link to="/login" search={{ next: "/claim" }} className="inline-flex h-9 items-center rounded-lg px-2 text-xs font-semibold text-fg">
+      <a href="https://t3x.futuret3ch.com.au/login" className="inline-flex h-9 items-center rounded-lg px-2 text-xs font-semibold text-fg">
         Sign in
-      </Link>
+      </a>
     );
   }
   return (
