@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import mysql from "mysql2/promise";
 
 const AUTH = "https://auth.futuret3ch.com.au";
-const LEDGER_NAME = "T3X claims";
 const UNIT = 20;
 
 const GECKO: Record<string, string> = {
@@ -87,26 +87,78 @@ function asLedger(raw: unknown): Ledger {
   };
 }
 
+let pool: mysql.Pool | null = null;
+
+function db() {
+  const host = process.env.HG_MYSQL_HOST;
+  const user = process.env.HG_MYSQL_USER;
+  const password = process.env.HG_MYSQL_PASSWORD;
+  const database = process.env.HG_MYSQL_DATABASE;
+  if (!host || !user || !password || !database) throw new Error("Claim database is not configured.");
+  pool ??= mysql.createPool({
+    host,
+    user,
+    password,
+    database,
+    connectionLimit: 2,
+    connectTimeout: 10000,
+    waitForConnections: true,
+  });
+  return pool;
+}
+
+async function accountId(token: string): Promise<string> {
+  const me = await authJson("/me", { method: "GET", token });
+  const id = typeof me.id === "string" ? me.id : "";
+  if (!id) throw new Error("Sign in again.");
+  return id;
+}
+
 async function readLedger(token: string): Promise<Ledger> {
-  const rows = (await authJson("/wallets", { method: "GET", token })) as unknown;
-  if (!Array.isArray(rows)) return emptyLedger();
-  const hit = rows.find((row) => row && typeof row === "object" && (row as { name?: string }).name === LEDGER_NAME) as
-    | { encryptedData?: string }
-    | undefined;
-  if (!hit?.encryptedData) return emptyLedger();
-  try {
-    return asLedger(JSON.parse(hit.encryptedData));
-  } catch {
-    return emptyLedger();
-  }
+  const userId = await accountId(token);
+  const conn = db();
+  const [fills] = await conn.query(
+    "SELECT id, tx, chain, kind, symbol, amount, address, usd, created_at FROM t3x_fills WHERE user_id = ? ORDER BY created_at ASC",
+    [userId],
+  );
+  const [wallets] = await conn.query("SELECT address, kind FROM t3x_wallets WHERE user_id = ?", [userId]);
+  const [claims] = await conn.query("SELECT id, units, status, created_at FROM t3x_claims WHERE user_id = ? ORDER BY created_at ASC", [userId]);
+  return asLedger({ fills, wallets, claims });
 }
 
 async function writeLedger(token: string, ledger: Ledger) {
-  await authJson("/wallets/backup", {
-    method: "POST",
-    token,
-    body: JSON.stringify({ name: LEDGER_NAME, encryptedData: JSON.stringify(ledger), address: null }),
-  });
+  const userId = await accountId(token);
+  const conn = await db().getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query("DELETE FROM t3x_fills WHERE user_id = ?", [userId]);
+    await conn.query("DELETE FROM t3x_wallets WHERE user_id = ?", [userId]);
+    await conn.query("DELETE FROM t3x_claims WHERE user_id = ?", [userId]);
+    for (const row of ledger.fills) {
+      await conn.query(
+        "INSERT INTO t3x_fills (id, user_id, tx, chain, kind, symbol, amount, address, usd, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [row.id, userId, row.tx, row.chain, row.kind, row.symbol, row.amount, row.address, row.usd, row.created_at],
+      );
+    }
+    for (const row of ledger.wallets) {
+      await conn.query("INSERT INTO t3x_wallets (user_id, address, kind) VALUES (?, ?, ?)", [userId, row.address, row.kind]);
+    }
+    for (const row of ledger.claims) {
+      await conn.query("INSERT INTO t3x_claims (id, user_id, units, status, created_at) VALUES (?, ?, ?, ?, ?)", [
+        row.id,
+        userId,
+        row.units,
+        row.status,
+        row.created_at,
+      ]);
+    }
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }
 
 function viewOf(ledger: Ledger) {

@@ -42,7 +42,7 @@ function LoginPage() {
         <p className="text-xs font-semibold tracking-widest text-accent uppercase">Account</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Sign in to claim T3X</h1>
         <p className="mt-2 text-sm text-pretty text-muted">
-          This uses your Futuret3ch account on Contabo. Every full $20 you swap or bridge is saved on that account.
+          This uses your Futuret3ch account. Every full $20 you swap or bridge is saved in the HostGator claim database.
         </p>
       </div>
       <div className="flex h-11 gap-2">
