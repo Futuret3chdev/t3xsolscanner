@@ -1,6 +1,10 @@
 #!/bin/sh
 set -eu
 cd /workspace
+if [ -f /workspace/.secrets/hostgator-ai-key ]; then
+  HOSTGATOR_AI_KEY=$(cat /workspace/.secrets/hostgator-ai-key)
+  export HOSTGATOR_AI_KEY
+fi
 if curl -sf -o /dev/null --max-time 1 http://127.0.0.1:8080/; then
   exit 0
 fi

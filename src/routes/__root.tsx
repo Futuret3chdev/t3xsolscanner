@@ -9,16 +9,19 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "T3X Sol Scanner" },
-      {
-        name: "description",
-        content:
-          "Live Solana explorer and swap router. Scan wallets, mints, blocks, and compare venue quotes.",
-      },
+      { title: "T3X Scanner" },
+      { name: "description", content: "Live scanner for Solana and 24 EVM networks, with wallet connect and bridging." },
       { name: "theme-color", content: "#0e0d0b" },
+      { property: "og:title", content: "T3X Scanner" },
+      { property: "og:description", content: "Solana and 24 EVM chains. Live blocks, quotes, and bridging." },
+      { property: "og:image", content: "/og.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "T3X Scanner" },
+      { name: "twitter:description", content: "Solana and 24 EVM chains. Live blocks, quotes, and bridging." },
+      { name: "twitter:image", content: "/og.png" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

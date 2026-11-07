@@ -11,7 +11,7 @@ const ENDPOINTS = [
   {
     method: "GET",
     path: "/api/network",
-    detail: "Slot, block height, epoch progress, TPS, and the SOL price.",
+    detail: "Solana stats by default. chain= accepts ethereum, base, arbitrum, optimism, and the rest of the scanner list.",
   },
   {
     method: "GET",
@@ -48,6 +48,32 @@ const ENDPOINTS = [
     path: "/api/swap",
     detail: 'Body: { "input", "output", "amount", "slippageBps", "userPublicKey" }. Returns an unsigned base64 transaction. T3X does not send it.',
   },
+  {
+    method: "GET",
+    path: "/api/gas",
+    detail: "Gas price for every EVM chain the scanner tracks.",
+  },
+  {
+    method: "GET",
+    path: "/api/balances?address=0xADDRESS",
+    detail: "Native balance of one address on every EVM chain.",
+  },
+  {
+    method: "GET",
+    path: "/api/evm-quote?chain=base&input=ETH&output=USDC&amount=0.01&slippageBps=50",
+    detail: "Same-chain LI.FI quote. Add user=0x… to include the transaction fields.",
+  },
+  {
+    method: "GET",
+    path: "/api/bridge?fromChain=ethereum&toChain=base&asset=native&amount=0.01",
+    detail: "Cross-chain bridge quote. asset=native or stable. Add fromAddress to build the wallet transaction.",
+  },
+  {
+    method: "POST",
+    path: "/api/ai",
+    detail:
+      'Body: { "model": "gemini-3.1-flash-lite", "messages": [{ "role": "user", "content": "What is T3X?" }] }. Streams an answer. Claude, Gemini, Grok, GPT, and the other gateway models. The key stays on the server.',
+  },
 ];
 
 function DocsPage() {
@@ -60,16 +86,18 @@ function DocsPage() {
         <p className="text-xs font-semibold tracking-widest text-accent uppercase">API</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Same data the scanner uses.</h1>
         <p className="mt-2 max-w-2xl text-sm text-pretty text-muted">
-          No key. JSON in, JSON out. These routes are the public face of the explorer and the router. Chain reads
-          can lag a slot or two on the shared mainnet RPC.
+          No key for chain reads. JSON in, JSON out. Solana routes stay the same. Network accepts a chain id, and /api/gas,
+          /api/balances, /api/evm-quote, and /api/bridge cover the other networks. /api/ai streams a model answer. Public RPCs can lag.
         </p>
       </div>
       <ul className="flex flex-col gap-3">
         {ENDPOINTS.map((endpoint) => {
           const sample =
-            endpoint.method === "POST"
+            endpoint.path === "/api/ai"
+              ? `curl -X POST ${origin}/api/ai \\\n  -H 'content-type: application/json' \\\n  -d '{"model":"gemini-3.1-flash-lite","messages":[{"role":"user","content":"What is T3X?"}]}'`
+              : endpoint.method === "POST"
               ? `curl -X POST ${origin}${endpoint.path.split(" ")[0]} \\\n  -H 'content-type: application/json' \\\n  -d '{"input":"SOL","output":"USDC","amount":"0.1","slippageBps":50,"userPublicKey":"YOUR_WALLET"}'`
-              : `curl ${origin}${endpoint.path.startsWith("/api/quote") ? "/api/quote?input=SOL&output=USDC&amount=0.1&slippageBps=50" : endpoint.path.split(" ")[0] === "/api/block?slot=466000000" ? endpoint.path : endpoint.path.includes("SIGNATURE") || endpoint.path.includes("ADDRESS") ? endpoint.path : endpoint.path}`;
+              : `curl ${origin}${endpoint.path}`;
           const href = endpoint.path.includes("?") || endpoint.method === "POST" ? endpoint.path : endpoint.path;
           return (
             <li key={endpoint.path} className="rounded-xl border border-line bg-surface p-4">

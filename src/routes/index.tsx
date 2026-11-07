@@ -1,188 +1,236 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Addr, Change, Panel, Pending } from "@/components/bits";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { AirdropBanner } from "@/components/airdrop-banner";
+import { Change, Panel, Pending } from "@/components/bits";
+import { SavedScans } from "@/components/extras";
 import { ScanBand } from "@/components/shell";
-import { ago, compact, slotFmt, usd } from "@/lib/format";
-import { getBlocks, getNetwork, getTrending } from "@/lib/server-fns";
+import { CHAINS, type HomeView, parseChain, type ChainId } from "@/lib/chains";
+import { ago, compact, shortAddr, slotFmt, usd } from "@/lib/format";
+import { addressName } from "@/lib/names";
+import { getChainHome } from "@/lib/server-fns";
 
 export const Route = createFileRoute("/")({
-  loader: async () => {
-    const [network, feed, trending] = await Promise.all([
-      getNetwork(),
-      getBlocks(),
-      getTrending().catch(() => []),
-    ]);
-    return { network, feed, trending };
-  },
-  pendingComponent: () => <Pending label="Reading mainnet…" />,
+  validateSearch: (search: Record<string, unknown>) => ({ chain: parseChain(search.chain) }),
+  loaderDeps: ({ search }) => ({ chain: search.chain }),
+  loader: ({ deps }) => getChainHome({ data: { chain: deps.chain } }),
+  pendingComponent: () => <Pending label="Reading the chain…" />,
   component: Home,
   head: () => ({ meta: [{ title: "Explorer · T3X Sol Scanner" }] }),
 });
 
 function Home() {
-  const { network, feed, trending } = Route.useLoaderData();
-  const router = useRouter();
+  const initial = Route.useLoaderData();
+  const { chain } = Route.useSearch();
+  const [data, setData] = useState(initial);
+
+  useEffect(() => {
+    setData(initial);
+  }, [initial]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      if (!document.hidden) void router.invalidate();
+      if (document.hidden) return;
+      void fetch(`/api/network?chain=${chain}`)
+        .then((response) => response.json())
+        .then((next: HomeView) => {
+          if (next && Array.isArray(next.stats)) setData(next);
+        })
+        .catch(() => undefined);
     }, 12000);
     return () => window.clearInterval(id);
-  }, [router]);
+  }, [chain]);
 
-  const latest = feed.blocks[0];
+  const blocks = Array.from({ length: 6 }, (_, index) => data.blocks[index] ?? null);
+  const txs = Array.from({ length: 6 }, (_, index) => data.txs[index] ?? null);
+  const markets = data.markets.slice(0, 4);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-widest text-accent uppercase">
-            <span className="live-dot inline-block size-2 rounded-full bg-accent" />
-            Mainnet
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-balance">Solana, as it lands.</h1>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-xs font-semibold tracking-widest text-accent uppercase">
+              <span className="live-dot inline-block size-2 shrink-0 rounded-full bg-accent" />
+              Mainnet
+            </p>
+            <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight sm:text-3xl">{data.name}, as it lands.</h1>
+          </div>
+          <p className="shrink-0 text-xs text-muted sm:text-sm">Every 12s</p>
         </div>
-        <p className="text-sm text-muted">Refreshes every 12 seconds</p>
+        <AirdropBanner />
+        <div className="chain-row -mx-4 flex h-[4.75rem] items-stretch gap-2 overflow-x-auto px-4">
+          {CHAINS.map((item) => {
+            const active = item.id === chain;
+            const label = item.name.replace(" Chain", "").replace("Berachain", "Bera");
+            return (
+              <Link
+                key={item.id}
+                to="/"
+                search={{ chain: item.id }}
+                title={item.name}
+                className={`flex w-16 shrink-0 flex-col items-center justify-between rounded-xl px-1 py-1.5 ${
+                  active ? "bg-accent text-bg" : "border border-line bg-surface text-fg"
+                }`}
+              >
+                <span className="w-full truncate text-center text-[10px] font-semibold leading-none">{label}</span>
+                <img src={`/chains/${item.id}.png`} alt="" width={36} height={36} className="size-9 rounded-lg bg-bg object-contain" />
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
+      {data.warning ? <p className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">{data.warning}</p> : <div className="hidden" />}
+
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat
-          label="Slot"
-          value={slotFmt(network.slot)}
-          hint={`Height ${slotFmt(network.blockHeight)}`}
-        />
-        <div className="rounded-xl border border-line bg-surface p-4">
-          <p className="text-xs font-medium tracking-wide text-muted uppercase">Epoch {network.epoch}</p>
-          <p className="mt-2 font-mono text-2xl font-medium tabular-nums">
-            {network.epochProgress.toFixed(1)}%
-          </p>
-          <div className="mt-3 h-1 overflow-hidden rounded-full bg-line">
-            <div className="h-full bg-accent" style={{ width: `${Math.min(100, network.epochProgress)}%` }} />
+        {data.stats.map((stat) => (
+          <div key={stat.label} className="min-h-[7.5rem] rounded-xl border border-line bg-surface p-4">
+            <p className="truncate text-xs font-medium tracking-wide text-muted uppercase">{stat.label}</p>
+            <p className="mt-2 truncate font-mono text-2xl font-medium tabular-nums">{stat.value}</p>
+            {stat.meter != null ? (
+              <div className="mt-3 h-1 overflow-hidden rounded-full bg-line">
+                <div className="h-full bg-accent" style={{ width: `${Math.min(100, stat.meter)}%` }} />
+              </div>
+            ) : null}
+            <p className="mt-2 truncate text-xs text-muted">
+              {stat.change != null ? (
+                <>
+                  <Change value={stat.change} /> {stat.hint}
+                </>
+              ) : (
+                stat.hint
+              )}
+            </p>
           </div>
-          <p className="mt-2 text-xs text-muted">{slotFmt(network.slotsLeft)} slots left</p>
-        </div>
-        <Stat
-          label="TPS"
-          value={network.tps == null ? "—" : Math.round(network.tps).toLocaleString("en-US")}
-          hint="Last 60 seconds"
-        />
-        <div className="rounded-xl border border-line bg-surface p-4">
-          <p className="text-xs font-medium tracking-wide text-muted uppercase">SOL</p>
-          <p className="mt-2 font-mono text-2xl font-medium tabular-nums">{usd(network.solPrice)}</p>
-          <p className="mt-2 text-xs">
-            <Change value={network.solChange24h} /> <span className="text-muted">24h</span>
-          </p>
-        </div>
+        ))}
       </section>
 
       <ScanBand />
-
-      {feed.warning ? (
-        <p className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">{feed.warning}</p>
-      ) : null}
+      <Link
+        to="/ai"
+        className="flex h-16 items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4"
+      >
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold">Ask Claude, Gemini, or Grok</span>
+          <span className="block truncate text-xs text-muted">One gateway. Wallets, bridges, and the $20 airdrop.</span>
+        </span>
+        <span className="shrink-0 text-sm font-semibold text-accent">Ask</span>
+      </Link>
+      <SavedScans />
 
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <Panel title="Latest blocks">
             <ul className="divide-y divide-line">
-              {feed.blocks.map((block) => (
-                <li key={block.slot} className="grid grid-cols-2 gap-2 px-4 py-3 sm:grid-cols-4">
-                  <div>
-                    <Link
-                      to="/block/$slot"
-                      params={{ slot: String(block.slot) }}
-                      className="font-mono text-sm text-fg hover:text-accent"
-                    >
-                      {slotFmt(block.slot)}
-                    </Link>
-                    <p className="text-xs text-muted">{ago(block.time)}</p>
-                  </div>
-                  <div>
-                    <p className="font-mono text-sm tabular-nums">{block.txCount.toLocaleString("en-US")}</p>
-                    <p className="text-xs text-muted">txns</p>
-                  </div>
-                  <div className="col-span-2 min-w-0 sm:col-span-2">
-                    <p className="text-xs text-muted">Leader</p>
-                    {block.leader ? <Addr address={block.leader} /> : <span className="text-sm text-muted">—</span>}
-                  </div>
+              {blocks.map((block, index) => (
+                <li key={block?.id ?? `block-${index}`} className="grid h-16 grid-cols-2 items-center gap-2 px-4 sm:grid-cols-4">
+                  {block ? (
+                    <>
+                      <div className="min-w-0">
+                        <BlockLink chain={data.chain} id={block.id} label={block.label} kind={data.kind} />
+                        <p className="text-xs text-muted" suppressHydrationWarning>
+                          {ago(block.time)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-mono text-sm tabular-nums">{block.txCount.toLocaleString("en-US")}</p>
+                        <p className="text-xs text-muted">txns</p>
+                      </div>
+                      <div className="col-span-2 min-w-0">
+                        <p className="text-xs text-muted">{data.kind === "evm" ? "Miner" : "Leader"}</p>
+                        <p className="truncate font-mono text-sm">{block.meta ? (addressName(block.meta) ?? shortAddr(block.meta, 6)) : "—"}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted">—</span>
+                  )}
                 </li>
               ))}
             </ul>
           </Panel>
         </div>
         <div className="lg:col-span-2">
-          <Panel
-            title="Recent transactions"
-            action={
-              latest ? (
-                <Link to="/block/$slot" params={{ slot: String(latest.slot) }} className="text-xs text-muted hover:text-fg">
-                  From {slotFmt(latest.slot)}
-                </Link>
-              ) : null
-            }
-          >
+          <Panel title="Recent transactions">
             <ul className="divide-y divide-line">
-              {(latest?.signatures ?? []).map((sig) => (
-                <li key={sig} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <Addr address={sig} to="tx" />
-                  <span className="shrink-0 text-xs text-muted">{ago(latest?.time)}</span>
+              {txs.map((tx, index) => (
+                <li key={tx?.id ?? `tx-${index}`} className="flex h-14 items-center justify-between gap-3 px-4">
+                  {tx ? (
+                    <>
+                      <TxLink chain={data.chain} id={tx.id} kind={data.kind} />
+                      <span className="shrink-0 text-xs text-muted" suppressHydrationWarning>
+                        {ago(tx.time)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-muted">—</span>
+                  )}
                 </li>
               ))}
-              {!latest ? <li className="px-4 py-6 text-sm text-muted">No transactions yet.</li> : null}
             </ul>
           </Panel>
         </div>
       </div>
 
-      {trending.length ? (
-        <Panel title="Boosted tokens">
-          <ul className="grid sm:grid-cols-2">
-            {trending.map((token) => (
-              <li key={token.address} className="border-t border-line px-4 py-3">
-                <Link
-                  to="/address/$address"
-                  params={{ address: token.address }}
-                  className="flex items-center justify-between gap-3 hover:text-accent"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate font-semibold">{token.symbol}</span>
-                    <span className="block truncate text-xs text-muted">{token.name}</span>
+      <Panel title={data.marketTitle}>
+        <ul className="grid sm:grid-cols-2">
+          {markets.map((token) => (
+            <li key={token.address} className="h-24 border-t border-line px-4 py-3">
+              <Link
+                to={data.kind === "evm" ? "/c/$chain/address/$address" : "/address/$address"}
+                params={data.kind === "evm" ? { chain: data.chain, address: token.address } : { address: token.address }}
+                className="flex items-center justify-between gap-3 hover:text-accent"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold">{token.symbol}</span>
+                  <span className="block truncate text-xs text-muted">{token.name}</span>
+                </span>
+                <span className="text-right">
+                  <span className="block font-mono text-sm tabular-nums">{usd(token.priceUsd, 4)}</span>
+                  <span className="text-xs">
+                    <Change value={token.changeH24} />
                   </span>
-                  <span className="text-right">
-                    <span className="block font-mono text-sm tabular-nums">{usd(token.priceUsd, 4)}</span>
-                    <span className="text-xs">
-                      <Change value={token.changeH24} />
-                    </span>
-                  </span>
-                </Link>
-                <p className="mt-1 text-xs text-muted">
-                  Liq {usd(token.liquidityUsd, 0)} · Vol {compact(token.volumeH24)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-      ) : null}
-
-      <section className="flex flex-col items-start justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-4 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="font-semibold">Need a route, not a receipt?</h2>
-          <p className="text-sm text-muted">Compare the winning venue against Raydium, Orca, Meteora, and Phoenix.</p>
-        </div>
-        <Link to="/router" className="inline-flex h-11 items-center rounded-lg bg-accent px-4 text-sm font-semibold text-bg">
-          Open router
-        </Link>
-      </section>
+                </span>
+              </Link>
+              <p className="mt-1 truncate text-xs text-muted">
+                Liq {usd(token.liquidityUsd, 0)} · Vol {compact(token.volumeH24)}
+              </p>
+            </li>
+          ))}
+          {markets.length === 0 ? <li className="h-16 px-4 py-4 text-sm text-muted">No markets yet.</li> : null}
+        </ul>
+      </Panel>
     </div>
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
+function BlockLink({ chain, id, label, kind }: { chain: ChainId; id: string; label: string; kind: "solana" | "evm" }) {
+  const className = "font-mono text-sm text-fg hover:text-accent";
+  if (kind === "evm") {
+    return (
+      <Link to="/c/$chain/block/$id" params={{ chain, id }} className={className}>
+        {label}
+      </Link>
+    );
+  }
   return (
-    <div className="rounded-xl border border-line bg-surface p-4">
-      <p className="text-xs font-medium tracking-wide text-muted uppercase">{label}</p>
-      <p className="mt-2 font-mono text-2xl font-medium tabular-nums">{value}</p>
-      <p className="mt-2 text-xs text-muted">{hint}</p>
-    </div>
+    <Link to="/block/$slot" params={{ slot: id }} className={className}>
+      {label}
+    </Link>
+  );
+}
+
+function TxLink({ chain, id, kind }: { chain: ChainId; id: string; kind: "solana" | "evm" }) {
+  const className = "truncate font-mono text-sm text-fg hover:text-accent";
+  if (kind === "evm") {
+    return (
+      <Link to="/c/$chain/tx/$hash" params={{ chain, hash: id }} className={className}>
+        {shortAddr(id, 8)}
+      </Link>
+    );
+  }
+  return (
+    <Link to="/tx/$sig" params={{ sig: id }} className={className}>
+      {shortAddr(id, 8)}
+    </Link>
   );
 }

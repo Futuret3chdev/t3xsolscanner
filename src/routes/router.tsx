@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeftRight } from "lucide-react";
 import { CopyButton } from "@/components/bits";
+import { BridgePanel } from "@/components/bridge";
+import { AirdropBanner } from "@/components/airdrop-banner";
+import { EvmRouter } from "@/components/evm-router";
+import { CHAINS, type ChainId } from "@/lib/chains";
 import { slotFmt, usd } from "@/lib/format";
+import { useWallet } from "@/lib/wallet";
 import { TOKENS } from "@/lib/labels";
 
 export const Route = createFileRoute("/router")({
@@ -25,6 +30,9 @@ type QuoteResponse = {
 };
 
 function RouterPage() {
+  const connected = useWallet();
+  const [mode, setMode] = useState<"swap" | "bridge">("swap");
+  const [network, setNetwork] = useState<ChainId>("solana");
   const [input, setInput] = useState("SOL");
   const [output, setOutput] = useState("USDC");
   const [amount, setAmount] = useState("1");
@@ -35,6 +43,11 @@ function RouterPage() {
   const [error, setError] = useState<string | null>(null);
   const [tx, setTx] = useState<string | null>(null);
   const [building, setBuilding] = useState(false);
+  const [signing, setSigning] = useState(false);
+
+  useEffect(() => {
+    if (connected.solAddress) setWallet((current) => current || connected.solAddress || "");
+  }, [connected.solAddress]);
 
   const curl = useMemo(() => {
     const params = new URLSearchParams({ input, output, amount, slippageBps: slippage || "50" });
@@ -101,10 +114,46 @@ function RouterPage() {
           One size. Every venue priced beside the winner.
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-pretty text-muted">
-          T3X asks Jupiter for the best route, then reprices the same order on Whirlpool, Raydium, Meteora, and
-          Phoenix. You get the split that won — and the unsigned transaction, if you want to sign it yourself.
+          Solana quotes come from Jupiter. Other chains quote through LI.FI. Bridge moves funds across chains, and the
+          transaction is sent only after your wallet approves it.
         </p>
+        <div className="mt-3">
+          <AirdropBanner />
+        </div>
       </div>
+      <div className="flex h-11 gap-2">
+        {(["swap", "bridge"] as const).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => setMode(item)}
+            className={`h-11 rounded-lg px-4 text-sm font-semibold ${mode === item ? "bg-accent text-bg" : "border border-line text-muted"}`}
+          >
+            {item === "swap" ? "Swap" : "Bridge"}
+          </button>
+        ))}
+      </div>
+      {mode === "bridge" ? <BridgePanel /> : null}
+      {mode === "swap" ? (
+      <>
+      <label className="sr-only" htmlFor="router-chain">
+        Network
+      </label>
+      <select
+        id="router-chain"
+        value={network}
+        onChange={(event) => setNetwork(event.target.value as ChainId)}
+        className="h-11 w-full rounded-lg border border-line bg-surface px-3 text-base outline-none focus-visible:border-accent md:max-w-xs md:text-sm"
+      >
+        {CHAINS.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.name}
+          </option>
+        ))}
+      </select>
+      {network !== "solana" ? <EvmRouter key={network} chain={network} /> : null}
+      {network === "solana" ? (
+      <>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_1fr]">
         <form
@@ -268,7 +317,25 @@ function RouterPage() {
         </div>
         {tx ? (
           <div className="mt-3">
-            <div className="mb-2 flex justify-end">
+            <div className="mb-2 flex flex-wrap justify-end gap-2">
+              {connected.solAddress ? (
+                <button
+                  type="button"
+                  disabled={signing}
+                  onClick={() => {
+                    setSigning(true);
+                    setError(null);
+                    void connected
+                      .sendSolana(tx)
+                      .then(() => setError(null))
+                      .catch((err: unknown) => setError(err instanceof Error ? err.message : "The wallet did not send it."))
+                      .finally(() => setSigning(false));
+                  }}
+                  className="inline-flex h-9 items-center rounded-lg bg-accent px-3 text-xs font-semibold text-bg disabled:opacity-60"
+                >
+                  {signing ? "Waiting for the wallet…" : "Sign in wallet"}
+                </button>
+              ) : null}
               <CopyButton value={tx} label="Copy transaction" />
             </div>
             <pre className="max-h-40 overflow-auto break-all rounded-lg bg-bg p-3 font-mono text-xs text-muted">{tx}</pre>
@@ -283,6 +350,10 @@ function RouterPage() {
         </div>
         <pre className="overflow-auto font-mono text-xs text-muted">{curl}</pre>
       </section>
+      </>
+      ) : null}
+      </>
+      ) : null}
     </div>
   );
 }

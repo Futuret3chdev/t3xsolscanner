@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiRouteImport } from './routes/ai'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as RouterRouteImport } from './routes/router'
 import { Route as AddressAddressRouteImport } from './routes/address.$address'
 import { Route as ApiAccountRouteImport } from './routes/api/account'
+import { Route as ApiAiRouteImport } from './routes/api/ai'
+import { Route as ApiBalancesRouteImport } from './routes/api/balances'
 import { Route as ApiBlockRouteImport } from './routes/api/block'
 import { Route as ApiBlocksRouteImport } from './routes/api/blocks'
+import { Route as ApiBridgeRouteImport } from './routes/api/bridge'
+import { Route as ApiEvmQuoteRouteImport } from './routes/api/evm-quote'
+import { Route as ApiGasRouteImport } from './routes/api/gas'
 import { Route as ApiNetworkRouteImport } from './routes/api/network'
 import { Route as ApiQuoteRouteImport } from './routes/api/quote'
 import { Route as ApiSwapRouteImport } from './routes/api/swap'
@@ -23,10 +29,18 @@ import { Route as ApiTrendingRouteImport } from './routes/api/trending'
 import { Route as ApiTxRouteImport } from './routes/api/tx'
 import { Route as BlockSlotRouteImport } from './routes/block.$slot'
 import { Route as TxSigRouteImport } from './routes/tx.$sig'
+import { Route as CChainAddressAddressRouteImport } from './routes/c.$chain.address.$address'
+import { Route as CChainBlockIdRouteImport } from './routes/c.$chain.block.$id'
+import { Route as CChainTxHashRouteImport } from './routes/c.$chain.tx.$hash'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
@@ -49,6 +63,16 @@ const ApiAccountRoute = ApiAccountRouteImport.update({
   path: '/api/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiRoute = ApiAiRouteImport.update({
+  id: '/api/ai',
+  path: '/api/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBalancesRoute = ApiBalancesRouteImport.update({
+  id: '/api/balances',
+  path: '/api/balances',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBlockRoute = ApiBlockRouteImport.update({
   id: '/api/block',
   path: '/api/block',
@@ -57,6 +81,21 @@ const ApiBlockRoute = ApiBlockRouteImport.update({
 const ApiBlocksRoute = ApiBlocksRouteImport.update({
   id: '/api/blocks',
   path: '/api/blocks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBridgeRoute = ApiBridgeRouteImport.update({
+  id: '/api/bridge',
+  path: '/api/bridge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEvmQuoteRoute = ApiEvmQuoteRouteImport.update({
+  id: '/api/evm-quote',
+  path: '/api/evm-quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGasRoute = ApiGasRouteImport.update({
+  id: '/api/gas',
+  path: '/api/gas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiNetworkRoute = ApiNetworkRouteImport.update({
@@ -94,15 +133,36 @@ const TxSigRoute = TxSigRouteImport.update({
   path: '/tx/$sig',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CChainAddressAddressRoute = CChainAddressAddressRouteImport.update({
+  id: '/c/$chain/address/$address',
+  path: '/c/$chain/address/$address',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CChainBlockIdRoute = CChainBlockIdRouteImport.update({
+  id: '/c/$chain/block/$id',
+  path: '/c/$chain/block/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CChainTxHashRoute = CChainTxHashRouteImport.update({
+  id: '/c/$chain/tx/$hash',
+  path: '/c/$chain/tx/$hash',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/docs': typeof DocsRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
+  '/api/ai': typeof ApiAiRoute
+  '/api/balances': typeof ApiBalancesRoute
   '/api/block': typeof ApiBlockRoute
   '/api/blocks': typeof ApiBlocksRoute
+  '/api/bridge': typeof ApiBridgeRoute
+  '/api/evm-quote': typeof ApiEvmQuoteRoute
+  '/api/gas': typeof ApiGasRoute
   '/api/network': typeof ApiNetworkRoute
   '/api/quote': typeof ApiQuoteRoute
   '/api/swap': typeof ApiSwapRoute
@@ -110,15 +170,24 @@ export interface FileRoutesByFullPath {
   '/api/tx': typeof ApiTxRoute
   '/block/$slot': typeof BlockSlotRoute
   '/tx/$sig': typeof TxSigRoute
+  '/c/$chain/address/$address': typeof CChainAddressAddressRoute
+  '/c/$chain/block/$id': typeof CChainBlockIdRoute
+  '/c/$chain/tx/$hash': typeof CChainTxHashRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/docs': typeof DocsRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
+  '/api/ai': typeof ApiAiRoute
+  '/api/balances': typeof ApiBalancesRoute
   '/api/block': typeof ApiBlockRoute
   '/api/blocks': typeof ApiBlocksRoute
+  '/api/bridge': typeof ApiBridgeRoute
+  '/api/evm-quote': typeof ApiEvmQuoteRoute
+  '/api/gas': typeof ApiGasRoute
   '/api/network': typeof ApiNetworkRoute
   '/api/quote': typeof ApiQuoteRoute
   '/api/swap': typeof ApiSwapRoute
@@ -126,16 +195,25 @@ export interface FileRoutesByTo {
   '/api/tx': typeof ApiTxRoute
   '/block/$slot': typeof BlockSlotRoute
   '/tx/$sig': typeof TxSigRoute
+  '/c/$chain/address/$address': typeof CChainAddressAddressRoute
+  '/c/$chain/block/$id': typeof CChainBlockIdRoute
+  '/c/$chain/tx/$hash': typeof CChainTxHashRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/docs': typeof DocsRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
+  '/api/ai': typeof ApiAiRoute
+  '/api/balances': typeof ApiBalancesRoute
   '/api/block': typeof ApiBlockRoute
   '/api/blocks': typeof ApiBlocksRoute
+  '/api/bridge': typeof ApiBridgeRoute
+  '/api/evm-quote': typeof ApiEvmQuoteRoute
+  '/api/gas': typeof ApiGasRoute
   '/api/network': typeof ApiNetworkRoute
   '/api/quote': typeof ApiQuoteRoute
   '/api/swap': typeof ApiSwapRoute
@@ -143,17 +221,26 @@ export interface FileRoutesById {
   '/api/tx': typeof ApiTxRoute
   '/block/$slot': typeof BlockSlotRoute
   '/tx/$sig': typeof TxSigRoute
+  '/c/$chain/address/$address': typeof CChainAddressAddressRoute
+  '/c/$chain/block/$id': typeof CChainBlockIdRoute
+  '/c/$chain/tx/$hash': typeof CChainTxHashRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai'
     | '/docs'
     | '/router'
     | '/address/$address'
     | '/api/account'
+    | '/api/ai'
+    | '/api/balances'
     | '/api/block'
     | '/api/blocks'
+    | '/api/bridge'
+    | '/api/evm-quote'
+    | '/api/gas'
     | '/api/network'
     | '/api/quote'
     | '/api/swap'
@@ -161,15 +248,24 @@ export interface FileRouteTypes {
     | '/api/tx'
     | '/block/$slot'
     | '/tx/$sig'
+    | '/c/$chain/address/$address'
+    | '/c/$chain/block/$id'
+    | '/c/$chain/tx/$hash'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai'
     | '/docs'
     | '/router'
     | '/address/$address'
     | '/api/account'
+    | '/api/ai'
+    | '/api/balances'
     | '/api/block'
     | '/api/blocks'
+    | '/api/bridge'
+    | '/api/evm-quote'
+    | '/api/gas'
     | '/api/network'
     | '/api/quote'
     | '/api/swap'
@@ -177,15 +273,24 @@ export interface FileRouteTypes {
     | '/api/tx'
     | '/block/$slot'
     | '/tx/$sig'
+    | '/c/$chain/address/$address'
+    | '/c/$chain/block/$id'
+    | '/c/$chain/tx/$hash'
   id:
     | '__root__'
     | '/'
+    | '/ai'
     | '/docs'
     | '/router'
     | '/address/$address'
     | '/api/account'
+    | '/api/ai'
+    | '/api/balances'
     | '/api/block'
     | '/api/blocks'
+    | '/api/bridge'
+    | '/api/evm-quote'
+    | '/api/gas'
     | '/api/network'
     | '/api/quote'
     | '/api/swap'
@@ -193,16 +298,25 @@ export interface FileRouteTypes {
     | '/api/tx'
     | '/block/$slot'
     | '/tx/$sig'
+    | '/c/$chain/address/$address'
+    | '/c/$chain/block/$id'
+    | '/c/$chain/tx/$hash'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiRoute: typeof AiRoute
   DocsRoute: typeof DocsRoute
   RouterRoute: typeof RouterRoute
   AddressAddressRoute: typeof AddressAddressRoute
   ApiAccountRoute: typeof ApiAccountRoute
+  ApiAiRoute: typeof ApiAiRoute
+  ApiBalancesRoute: typeof ApiBalancesRoute
   ApiBlockRoute: typeof ApiBlockRoute
   ApiBlocksRoute: typeof ApiBlocksRoute
+  ApiBridgeRoute: typeof ApiBridgeRoute
+  ApiEvmQuoteRoute: typeof ApiEvmQuoteRoute
+  ApiGasRoute: typeof ApiGasRoute
   ApiNetworkRoute: typeof ApiNetworkRoute
   ApiQuoteRoute: typeof ApiQuoteRoute
   ApiSwapRoute: typeof ApiSwapRoute
@@ -210,6 +324,9 @@ export interface RootRouteChildren {
   ApiTxRoute: typeof ApiTxRoute
   BlockSlotRoute: typeof BlockSlotRoute
   TxSigRoute: typeof TxSigRoute
+  CChainAddressAddressRoute: typeof CChainAddressAddressRoute
+  CChainBlockIdRoute: typeof CChainBlockIdRoute
+  CChainTxHashRoute: typeof CChainTxHashRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -219,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs': {
@@ -249,6 +373,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai': {
+      id: '/api/ai'
+      path: '/api/ai'
+      fullPath: '/api/ai'
+      preLoaderRoute: typeof ApiAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/balances': {
+      id: '/api/balances'
+      path: '/api/balances'
+      fullPath: '/api/balances'
+      preLoaderRoute: typeof ApiBalancesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/block': {
       id: '/api/block'
       path: '/api/block'
@@ -261,6 +399,27 @@ declare module '@tanstack/react-router' {
       path: '/api/blocks'
       fullPath: '/api/blocks'
       preLoaderRoute: typeof ApiBlocksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bridge': {
+      id: '/api/bridge'
+      path: '/api/bridge'
+      fullPath: '/api/bridge'
+      preLoaderRoute: typeof ApiBridgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/evm-quote': {
+      id: '/api/evm-quote'
+      path: '/api/evm-quote'
+      fullPath: '/api/evm-quote'
+      preLoaderRoute: typeof ApiEvmQuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gas': {
+      id: '/api/gas'
+      path: '/api/gas'
+      fullPath: '/api/gas'
+      preLoaderRoute: typeof ApiGasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/network': {
@@ -312,17 +471,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TxSigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/c/$chain/address/$address': {
+      id: '/c/$chain/address/$address'
+      path: '/c/$chain/address/$address'
+      fullPath: '/c/$chain/address/$address'
+      preLoaderRoute: typeof CChainAddressAddressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$chain/block/$id': {
+      id: '/c/$chain/block/$id'
+      path: '/c/$chain/block/$id'
+      fullPath: '/c/$chain/block/$id'
+      preLoaderRoute: typeof CChainBlockIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$chain/tx/$hash': {
+      id: '/c/$chain/tx/$hash'
+      path: '/c/$chain/tx/$hash'
+      fullPath: '/c/$chain/tx/$hash'
+      preLoaderRoute: typeof CChainTxHashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiRoute: AiRoute,
   DocsRoute: DocsRoute,
   RouterRoute: RouterRoute,
   AddressAddressRoute: AddressAddressRoute,
   ApiAccountRoute: ApiAccountRoute,
+  ApiAiRoute: ApiAiRoute,
+  ApiBalancesRoute: ApiBalancesRoute,
   ApiBlockRoute: ApiBlockRoute,
   ApiBlocksRoute: ApiBlocksRoute,
+  ApiBridgeRoute: ApiBridgeRoute,
+  ApiEvmQuoteRoute: ApiEvmQuoteRoute,
+  ApiGasRoute: ApiGasRoute,
   ApiNetworkRoute: ApiNetworkRoute,
   ApiQuoteRoute: ApiQuoteRoute,
   ApiSwapRoute: ApiSwapRoute,
@@ -330,6 +516,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTxRoute: ApiTxRoute,
   BlockSlotRoute: BlockSlotRoute,
   TxSigRoute: TxSigRoute,
+  CChainAddressAddressRoute: CChainAddressAddressRoute,
+  CChainBlockIdRoute: CChainBlockIdRoute,
+  CChainTxHashRoute: CChainTxHashRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

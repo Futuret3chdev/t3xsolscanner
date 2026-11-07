@@ -16,11 +16,13 @@
 
 @layer base {
   html {
+    overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
+    overflow-x: clip;
     background: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
@@ -49,6 +51,15 @@
 
 .live-dot {
   animation: t3x-pulse 1.6s ease-in-out infinite;
+}
+
+.chain-row {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chain-row::-webkit-scrollbar {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

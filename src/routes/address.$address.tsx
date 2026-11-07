@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Addr, Change, CopyButton, Panel, Pending } from "@/components/bits";
+import { WatchButton } from "@/components/extras";
 import { ago, lamportsToSol, slotFmt, usd } from "@/lib/format";
 import { getAccount } from "@/lib/server-fns";
 
@@ -36,7 +37,10 @@ function AddressPage() {
           </h1>
           <p className="mt-2 break-all font-mono text-xs text-muted">{account.address}</p>
         </div>
-        <CopyButton value={account.address} label="Copy address" />
+        <div className="flex shrink-0 gap-2">
+          <WatchButton chain="solana" kind="address" id={account.address} label={account.symbol ?? account.title} />
+          <CopyButton value={account.address} label="Copy address" />
+        </div>
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
