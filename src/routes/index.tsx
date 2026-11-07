@@ -4,6 +4,7 @@ import { AirdropBanner } from "@/components/airdrop-banner";
 import { Change, Panel, Pending } from "@/components/bits";
 import { SavedScans } from "@/components/extras";
 import { ScanBand } from "@/components/shell";
+import { WalletBag } from "@/components/wallet-bag";
 import { CHAINS, type HomeView, parseChain, type ChainId } from "@/lib/chains";
 import { ago, compact, shortAddr, slotFmt, usd } from "@/lib/format";
 import { addressName } from "@/lib/names";
@@ -106,6 +107,7 @@ function Home() {
       </section>
 
       <ScanBand />
+      <WalletBag />
       <SavedScans />
 
       <div className="grid gap-4 lg:grid-cols-5">

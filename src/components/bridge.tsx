@@ -3,6 +3,8 @@ import { useState, type FormEvent } from "react";
 import { CHAINS, chainMeta, type ChainId } from "@/lib/chains";
 import { shortAddr } from "@/lib/format";
 import { useWallet } from "@/lib/wallet";
+import { AmountPercents, useWalletBag } from "@/components/wallet-bag";
+import { countTransfer } from "@/lib/airdrop-client";
 
 type BridgeQuote = {
   tool: string;
@@ -21,6 +23,7 @@ type BridgeQuote = {
 
 export function BridgePanel() {
   const wallet = useWallet();
+  const bag = useWalletBag();
   const [fromChain, setFromChain] = useState<ChainId>("ethereum");
   const [toChain, setToChain] = useState<ChainId>("base");
   const [asset, setAsset] = useState<"native" | "stable">("native");
@@ -37,6 +40,14 @@ export function BridgePanel() {
   const fromAddress = from.kind === "solana" ? wallet.solAddress : wallet.evmAddress;
   const sameFamily = from.kind === to.kind;
   const receive = toAddress.trim() || (sameFamily ? fromAddress ?? "" : to.kind === "solana" ? wallet.solAddress ?? "" : wallet.evmAddress ?? "");
+  const pay =
+    asset !== "native"
+      ? null
+      : from.kind === "solana"
+        ? bag.solAsset(from.symbol)
+        : wallet.evmAddress
+          ? bag.evmAsset(fromChain, from.symbol, from.symbol)
+          : null;
 
   async function quoteNow(event?: FormEvent) {
     event?.preventDefault();
@@ -73,6 +84,15 @@ export function BridgePanel() {
       const tx = quote.transaction;
       const sent = tx.kind === "evm" ? await wallet.sendEvm(tx) : await wallet.sendSolana(tx.data);
       setHash(sent);
+      const note = await countTransfer({
+        tx: sent,
+        chain: fromChain,
+        kind: "bridge",
+        symbol: asset === "stable" ? "USDC" : from.symbol,
+        amount,
+        address: fromAddress ?? "",
+      });
+      if (note) setError(note);
     } catch (err) {
       setError(err instanceof Error ? err.message : "The wallet did not send it.");
     } finally {
@@ -101,6 +121,9 @@ export function BridgePanel() {
         </div>
         <label className="mt-4 block text-xs font-medium tracking-wide text-muted uppercase" htmlFor="bridge-amount">
           You bridge
+          {pay ? (
+            <span className="ml-2 normal-case tracking-normal">{pay.ui.toLocaleString("en-US", { maximumFractionDigits: 6 })} {asset === "native" ? from.symbol : "available"}</span>
+          ) : null}
         </label>
         <div className="mt-2 flex gap-2">
           <input
@@ -119,6 +142,7 @@ export function BridgePanel() {
             <option value="stable">Stable</option>
           </select>
         </div>
+        <AmountPercents balance={pay?.ui ?? null} native={asset === "native"} onPick={setAmount} />
         <p className="mt-3 text-xs text-muted">
           {fromAddress ? `Paying from ${shortAddr(fromAddress, 4)}` : `Connect a ${from.kind === "solana" ? "Solana" : "EVM"} wallet to send this.`}
         </p>

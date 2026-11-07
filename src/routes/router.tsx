@@ -9,6 +9,8 @@ import { CHAINS, type ChainId } from "@/lib/chains";
 import { slotFmt, usd } from "@/lib/format";
 import { useWallet } from "@/lib/wallet";
 import { TOKENS } from "@/lib/labels";
+import { AmountPercents, useWalletBag, WalletBag } from "@/components/wallet-bag";
+import { countTransfer } from "@/lib/airdrop-client";
 
 export const Route = createFileRoute("/router")({
   component: RouterPage,
@@ -31,6 +33,7 @@ type QuoteResponse = {
 
 function RouterPage() {
   const connected = useWallet();
+  const bag = useWalletBag();
   const [mode, setMode] = useState<"swap" | "bridge">("swap");
   const [network, setNetwork] = useState<ChainId>("solana");
   const [input, setInput] = useState("SOL");
@@ -121,6 +124,7 @@ function RouterPage() {
           <AirdropBanner />
         </div>
       </div>
+      <WalletBag />
       <div className="flex h-11 gap-2">
         {(["swap", "bridge"] as const).map((item) => (
           <button
@@ -165,6 +169,9 @@ function RouterPage() {
         >
           <label className="text-xs font-medium tracking-wide text-muted uppercase" htmlFor="amount">
             You pay
+            {bag.solAsset(input) ? (
+              <span className="ml-2 normal-case tracking-normal text-muted">{bag.solAsset(input)?.ui.toLocaleString("en-US", { maximumFractionDigits: 6 })} {input}</span>
+            ) : null}
           </label>
           <div className="mt-2 flex gap-2">
             <input
@@ -176,6 +183,11 @@ function RouterPage() {
             />
             <TokenSelect id="input-token" value={input} onChange={setInput} />
           </div>
+          <AmountPercents
+            balance={connected.solAddress ? (bag.solAsset(input)?.ui ?? null) : null}
+            native={bag.solAsset(input)?.native}
+            onPick={setAmount}
+          />
           <div className="my-3 flex justify-center">
             <button
               type="button"
@@ -327,7 +339,18 @@ function RouterPage() {
                     setError(null);
                     void connected
                       .sendSolana(tx)
-                      .then(() => setError(null))
+                      .then(async (sig) => {
+                        setTx(null);
+                        const note = await countTransfer({
+                          tx: sig,
+                          chain: "solana",
+                          kind: "swap",
+                          symbol: input,
+                          amount,
+                          address: connected.solAddress || wallet.trim(),
+                        });
+                        if (note) setError(note);
+                      })
                       .catch((err: unknown) => setError(err instanceof Error ? err.message : "The wallet did not send it."))
                       .finally(() => setSigning(false));
                   }}

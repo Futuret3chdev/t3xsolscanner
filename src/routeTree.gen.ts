@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClaimRouteImport } from './routes/claim'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as RouterRouteImport } from './routes/router'
 import { Route as AddressAddressRouteImport } from './routes/address.$address'
 import { Route as ApiAccountRouteImport } from './routes/api/account'
@@ -27,6 +29,7 @@ import { Route as ApiTrendingRouteImport } from './routes/api/trending'
 import { Route as ApiTxRouteImport } from './routes/api/tx'
 import { Route as BlockSlotRouteImport } from './routes/block.$slot'
 import { Route as TxSigRouteImport } from './routes/tx.$sig'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as CChainAddressAddressRouteImport } from './routes/c.$chain.address.$address'
 import { Route as CChainBlockIdRouteImport } from './routes/c.$chain.block.$id'
 import { Route as CChainTxHashRouteImport } from './routes/c.$chain.tx.$hash'
@@ -36,9 +39,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaimRoute = ClaimRouteImport.update({
+  id: '/claim',
+  path: '/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RouterRoute = RouterRouteImport.update({
@@ -121,6 +134,11 @@ const TxSigRoute = TxSigRouteImport.update({
   path: '/tx/$sig',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CChainAddressAddressRoute = CChainAddressAddressRouteImport.update({
   id: '/c/$chain/address/$address',
   path: '/c/$chain/address/$address',
@@ -139,7 +157,9 @@ const CChainTxHashRoute = CChainTxHashRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
   '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
@@ -156,13 +176,16 @@ export interface FileRoutesByFullPath {
   '/api/tx': typeof ApiTxRoute
   '/block/$slot': typeof BlockSlotRoute
   '/tx/$sig': typeof TxSigRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/c/$chain/address/$address': typeof CChainAddressAddressRoute
   '/c/$chain/block/$id': typeof CChainBlockIdRoute
   '/c/$chain/tx/$hash': typeof CChainTxHashRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
   '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
@@ -179,6 +202,7 @@ export interface FileRoutesByTo {
   '/api/tx': typeof ApiTxRoute
   '/block/$slot': typeof BlockSlotRoute
   '/tx/$sig': typeof TxSigRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/c/$chain/address/$address': typeof CChainAddressAddressRoute
   '/c/$chain/block/$id': typeof CChainBlockIdRoute
   '/c/$chain/tx/$hash': typeof CChainTxHashRoute
@@ -186,7 +210,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/claim': typeof ClaimRoute
   '/docs': typeof DocsRoute
+  '/login': typeof LoginRoute
   '/router': typeof RouterRoute
   '/address/$address': typeof AddressAddressRoute
   '/api/account': typeof ApiAccountRoute
@@ -203,6 +229,7 @@ export interface FileRoutesById {
   '/api/tx': typeof ApiTxRoute
   '/block/$slot': typeof BlockSlotRoute
   '/tx/$sig': typeof TxSigRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/c/$chain/address/$address': typeof CChainAddressAddressRoute
   '/c/$chain/block/$id': typeof CChainBlockIdRoute
   '/c/$chain/tx/$hash': typeof CChainTxHashRoute
@@ -211,7 +238,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/claim'
     | '/docs'
+    | '/login'
     | '/router'
     | '/address/$address'
     | '/api/account'
@@ -228,13 +257,16 @@ export interface FileRouteTypes {
     | '/api/tx'
     | '/block/$slot'
     | '/tx/$sig'
+    | '/api/auth/$'
     | '/c/$chain/address/$address'
     | '/c/$chain/block/$id'
     | '/c/$chain/tx/$hash'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/claim'
     | '/docs'
+    | '/login'
     | '/router'
     | '/address/$address'
     | '/api/account'
@@ -251,13 +283,16 @@ export interface FileRouteTypes {
     | '/api/tx'
     | '/block/$slot'
     | '/tx/$sig'
+    | '/api/auth/$'
     | '/c/$chain/address/$address'
     | '/c/$chain/block/$id'
     | '/c/$chain/tx/$hash'
   id:
     | '__root__'
     | '/'
+    | '/claim'
     | '/docs'
+    | '/login'
     | '/router'
     | '/address/$address'
     | '/api/account'
@@ -274,6 +309,7 @@ export interface FileRouteTypes {
     | '/api/tx'
     | '/block/$slot'
     | '/tx/$sig'
+    | '/api/auth/$'
     | '/c/$chain/address/$address'
     | '/c/$chain/block/$id'
     | '/c/$chain/tx/$hash'
@@ -281,7 +317,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClaimRoute: typeof ClaimRoute
   DocsRoute: typeof DocsRoute
+  LoginRoute: typeof LoginRoute
   RouterRoute: typeof RouterRoute
   AddressAddressRoute: typeof AddressAddressRoute
   ApiAccountRoute: typeof ApiAccountRoute
@@ -298,6 +336,7 @@ export interface RootRouteChildren {
   ApiTxRoute: typeof ApiTxRoute
   BlockSlotRoute: typeof BlockSlotRoute
   TxSigRoute: typeof TxSigRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   CChainAddressAddressRoute: typeof CChainAddressAddressRoute
   CChainBlockIdRoute: typeof CChainBlockIdRoute
   CChainTxHashRoute: typeof CChainTxHashRoute
@@ -312,11 +351,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/claim': {
+      id: '/claim'
+      path: '/claim'
+      fullPath: '/claim'
+      preLoaderRoute: typeof ClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/docs': {
       id: '/docs'
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/router': {
@@ -431,6 +484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TxSigRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/c/$chain/address/$address': {
       id: '/c/$chain/address/$address'
       path: '/c/$chain/address/$address'
@@ -457,7 +517,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClaimRoute: ClaimRoute,
   DocsRoute: DocsRoute,
+  LoginRoute: LoginRoute,
   RouterRoute: RouterRoute,
   AddressAddressRoute: AddressAddressRoute,
   ApiAccountRoute: ApiAccountRoute,
@@ -474,6 +536,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTxRoute: ApiTxRoute,
   BlockSlotRoute: BlockSlotRoute,
   TxSigRoute: TxSigRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   CChainAddressAddressRoute: CChainAddressAddressRoute,
   CChainBlockIdRoute: CChainBlockIdRoute,
   CChainTxHashRoute: CChainTxHashRoute,

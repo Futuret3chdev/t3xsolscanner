@@ -4,12 +4,15 @@ import { classifyQuery, parseChain, chainMeta, type ChainMeta } from "@/lib/chai
 import { ConnectButton } from "@/components/connect";
 import { MemoryTracker } from "@/components/extras";
 import { WalletProvider } from "@/lib/wallet";
+import { UserButton } from "@/lib/auth/gates";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 function NavLinks() {
   const path = useRouterState({ select: (state) => state.location.pathname });
   const items = [
     { to: "/", label: "Explorer" },
     { to: "/router", label: "Router" },
+    { to: "/claim", label: "Claim" },
     { to: "/docs", label: "API" },
   ] as const;
   return (
@@ -102,6 +105,19 @@ function SearchForm() {
   );
 }
 
+function AuthSlot() {
+  const { user, isPending } = useCurrentUserState();
+  if (isPending) return <div className="h-9 w-16 shrink-0 rounded-lg bg-surface" />;
+  if (!user) {
+    return (
+      <Link to="/login" search={{ next: "/claim" }} className="inline-flex h-9 items-center rounded-lg px-2 text-xs font-semibold text-fg">
+        Sign in
+      </Link>
+    );
+  }
+  return <UserButton />;
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <WalletProvider>
@@ -116,6 +132,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="hidden text-sm text-muted sm:inline">Scanner</span>
             </Link>
             <div className="flex items-center gap-2">
+              <AuthSlot />
               <ConnectButton />
             </div>
           </div>

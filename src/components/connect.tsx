@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { shortAddr } from "@/lib/format";
 import { useWallet, walletOpenUrl, type WalletChoice } from "@/lib/wallet";
+import { WalletBag } from "@/components/wallet-bag";
 
 const WALLETS: { id: WalletChoice; name: string; chains: string; detail: string }[] = [
   {
@@ -82,6 +83,7 @@ export function ConnectButton() {
               </button>
             </div>
             {wallet.evmAddress || wallet.solAddress ? (
+              <>
               <div className="mb-2 rounded-lg border border-line px-3 py-2 text-xs text-muted">
                 {wallet.evmAddress ? <p>EVM {shortAddr(wallet.evmAddress, 4)}</p> : null}
                 {wallet.solAddress ? <p>Solana {shortAddr(wallet.solAddress, 4)}</p> : null}
@@ -98,6 +100,10 @@ export function ConnectButton() {
                   ) : null}
                 </div>
               </div>
+              <div className="mb-2">
+                <WalletBag compact />
+              </div>
+              </>
             ) : (
               <p className="mb-2 text-xs text-pretty text-muted">On a phone, the wallet opens and loads T3X inside it.</p>
             )}

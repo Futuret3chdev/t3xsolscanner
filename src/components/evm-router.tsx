@@ -2,6 +2,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { CopyButton } from "@/components/bits";
 import { chainMeta, type ChainId } from "@/lib/chains";
 import { useWallet } from "@/lib/wallet";
+import { AmountPercents, useWalletBag } from "@/components/wallet-bag";
+import { countTransfer } from "@/lib/airdrop-client";
 
 type EvmQuote = {
   tool: string;
@@ -16,6 +18,7 @@ type EvmQuote = {
 export function EvmRouter({ chain }: { chain: ChainId }) {
   const meta = chainMeta(chain);
   const wallet = useWallet();
+  const bag = useWalletBag();
   const [input, setInput] = useState(meta.symbol);
   const [output, setOutput] = useState(meta.stable?.symbol ?? "");
   const [amount, setAmount] = useState("0.01");
@@ -57,12 +60,16 @@ export function EvmRouter({ chain }: { chain: ChainId }) {
   }
 
   const txText = quote?.transaction ? JSON.stringify(quote.transaction, null, 2) : "";
+  const pay = wallet.evmAddress ? bag.evmAsset(chain, input, meta.symbol) : null;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_1fr]">
       <form className="rounded-xl border border-line bg-surface p-4" onSubmit={(event) => void quoteNow(event)}>
         <label className="block text-xs font-medium tracking-wide text-muted uppercase" htmlFor="evm-amount">
           You pay
+          {pay ? (
+            <span className="ml-2 normal-case tracking-normal">{pay.ui.toLocaleString("en-US", { maximumFractionDigits: 6 })} {input}</span>
+          ) : null}
         </label>
         <div className="mt-2 flex gap-2">
           <input
@@ -79,6 +86,7 @@ export function EvmRouter({ chain }: { chain: ChainId }) {
             className="h-12 w-28 rounded-lg border border-line bg-bg px-2 font-mono text-sm outline-none focus-visible:border-accent"
           />
         </div>
+        <AmountPercents balance={pay?.ui ?? null} native={pay?.native} onPick={setAmount} />
         <label className="mt-4 block text-xs font-medium tracking-wide text-muted uppercase" htmlFor="evm-output">
           You receive
         </label>
@@ -160,7 +168,18 @@ export function EvmRouter({ chain }: { chain: ChainId }) {
                       setError(null);
                       void wallet
                         .sendEvm(quote.transaction!)
-                        .then(setSent)
+                        .then(async (hash) => {
+                          setSent(hash);
+                          const note = await countTransfer({
+                            tx: hash,
+                            chain,
+                            kind: "swap",
+                            symbol: input,
+                            amount,
+                            address: wallet.evmAddress || walletAddress.trim(),
+                          });
+                          if (note) setError(note);
+                        })
                         .catch((err: unknown) => setError(err instanceof Error ? err.message : "The wallet did not send it."))
                         .finally(() => setSending(false));
                     }}
