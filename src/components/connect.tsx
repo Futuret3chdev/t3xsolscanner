@@ -132,7 +132,7 @@ export function ConnectButton() {
                   <img src="/logo.png" alt="" width={40} height={40} className="size-10 shrink-0 rounded-full object-cover" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold">T3X Vault</span>
+                      <span className="text-sm font-semibold">T3x Vault</span>
                       <span className="shrink-0 rounded-full border border-line px-2 py-0.5 text-[10px] font-semibold tracking-wide text-muted uppercase">
                         Coming soon
                       </span>
