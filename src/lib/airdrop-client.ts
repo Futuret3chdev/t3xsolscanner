@@ -1,4 +1,4 @@
-import { recordFill } from "@/lib/airdrop.functions";
+import { countRemoteTransfer } from "@/lib/account-client";
 
 export type FillDraft = {
   tx: string;
@@ -13,8 +13,13 @@ const PENDING_KEY = "t3x-pending-fill";
 
 export async function countTransfer(fill: FillDraft): Promise<string | null> {
   try {
-    const result = await recordFill({ data: fill });
-    if (!result.ok) return result.error;
+    const result = await countRemoteTransfer(fill);
+    if (!result.ok) {
+      if (result.error.startsWith("Sign in")) {
+        sessionStorage.setItem(PENDING_KEY, JSON.stringify(fill));
+      }
+      return result.error;
+    }
     return null;
   } catch {
     try {

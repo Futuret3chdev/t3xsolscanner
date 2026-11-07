@@ -4,8 +4,7 @@ import { classifyQuery, parseChain, chainMeta, type ChainMeta } from "@/lib/chai
 import { ConnectButton } from "@/components/connect";
 import { MemoryTracker } from "@/components/extras";
 import { WalletProvider } from "@/lib/wallet";
-import { UserButton } from "@/lib/auth/gates";
-import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { useAccount, writeAccount } from "@/lib/account-client";
 
 function NavLinks() {
   const path = useRouterState({ select: (state) => state.location.pathname });
@@ -106,16 +105,19 @@ function SearchForm() {
 }
 
 function AuthSlot() {
-  const { user, isPending } = useCurrentUserState();
-  if (isPending) return <div className="h-9 w-16 shrink-0 rounded-lg bg-surface" />;
-  if (!user) {
+  const account = useAccount();
+  if (!account) {
     return (
       <Link to="/login" search={{ next: "/claim" }} className="inline-flex h-9 items-center rounded-lg px-2 text-xs font-semibold text-fg">
         Sign in
       </Link>
     );
   }
-  return <UserButton />;
+  return (
+    <button type="button" onClick={() => writeAccount(null)} className="inline-flex h-9 max-w-28 items-center truncate rounded-lg px-2 text-xs font-semibold text-fg">
+      {account.email.split("@")[0]}
+    </button>
+  );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {

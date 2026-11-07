@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
-import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { claimUnits, linkWallet, loadClaim, recordFill } from "@/lib/airdrop.functions";
+import { claimMine, linkMyWallet, loadMyClaim, useAccount, writeAccount } from "@/lib/account-client";
+import { countTransfer } from "@/lib/airdrop-client";
 import { useWallet } from "@/lib/wallet";
 import { shortAddr, usd } from "@/lib/format";
 
@@ -11,12 +10,12 @@ export const Route = createFileRoute("/claim")({
   head: () => ({ meta: [{ title: "Claim · T3X" }] }),
 });
 
-type ClaimView = Awaited<ReturnType<typeof loadClaim>>;
+type ClaimView = Awaited<ReturnType<typeof loadMyClaim>>;
 
 const PENDING_KEY = "t3x-pending-fill";
 
 function ClaimPage() {
-  const { user, isPending } = useCurrentUserState();
+  const account = useAccount();
   const wallet = useWallet();
   const [view, setView] = useState<ClaimView | null>(null);
   const [error, setError] = useState("");
@@ -24,12 +23,11 @@ function ClaimPage() {
   const [busy, setBusy] = useState(false);
 
   async function refresh() {
-    const next = await loadClaim();
-    setView(next);
+    setView(await loadMyClaim());
   }
 
   useEffect(() => {
-    if (!user) return;
+    if (!account) return;
     let alive = true;
     void (async () => {
       try {
@@ -37,10 +35,11 @@ function ClaimPage() {
         if (raw) {
           sessionStorage.removeItem(PENDING_KEY);
           const saved = JSON.parse(raw) as { tx: string; chain: string; kind: string; symbol: string; amount: string; address: string };
-          const savedResult = await recordFill({ data: saved });
-          if (alive && savedResult.ok) setNote(`Counted ${usd(savedResult.usd)} from the last transfer.`);
+          const savedResult = await countTransfer(saved);
+          if (alive && !savedResult) setNote("Last transfer counted.");
+          if (alive && savedResult) setError(savedResult);
         }
-        const next = await loadClaim();
+        const next = await loadMyClaim();
         if (alive) setView(next);
       } catch (err) {
         if (alive) setError(err instanceof Error ? err.message : "Could not load claims.");
@@ -49,14 +48,14 @@ function ClaimPage() {
     return () => {
       alive = false;
     };
-  }, [user?.id]);
+  }, [account?.id]);
 
   async function linkCurrent() {
     setError("");
     setBusy(true);
     try {
-      if (wallet.solAddress) await linkWallet({ data: { address: wallet.solAddress, kind: "solana" } });
-      if (wallet.evmAddress) await linkWallet({ data: { address: wallet.evmAddress, kind: "evm" } });
+      if (wallet.solAddress) await linkMyWallet(wallet.solAddress, "solana");
+      if (wallet.evmAddress) await linkMyWallet(wallet.evmAddress, "evm");
       if (!wallet.solAddress && !wallet.evmAddress) {
         setError("Connect a wallet first, then link it here.");
         return;
@@ -74,7 +73,7 @@ function ClaimPage() {
     setBusy(true);
     setError("");
     try {
-      const result = await claimUnits();
+      const result = await claimMine();
       if (!result.ok) {
         setError(result.error);
         return;
@@ -88,8 +87,17 @@ function ClaimPage() {
     }
   }
 
-  if (isPending) return <div className="mx-auto h-40 max-w-3xl px-4 py-8" />;
-  if (!user) return <RedirectToSignIn />;
+  if (!account) {
+    return (
+      <div className="mx-auto flex w-full max-w-md flex-col gap-3 px-4 py-8">
+        <h1 className="text-3xl font-semibold tracking-tight">Sign in to claim T3X</h1>
+        <p className="text-sm text-pretty text-muted">Accounts are stored on the Futuret3ch Contabo server.</p>
+        <Link to="/login" search={{ next: "/claim" }} className="inline-flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-bg">
+          Register or sign in
+        </Link>
+      </div>
+    );
+  }
 
   const toward = view?.toward ?? 0;
 
@@ -100,10 +108,12 @@ function ClaimPage() {
           <p className="text-xs font-semibold tracking-widest text-accent uppercase">Airdrop</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Every $20 earns T3X</h1>
           <p className="mt-2 text-sm text-pretty text-muted">
-            Signed in as {user.primaryEmail || user.displayName}. Swap or bridge, then the volume lands here. Claims stay pending until Futuret3ch sends them.
+            Signed in as {account.email}. Swap or bridge, then the volume lands here. Claims stay pending until Futuret3ch sends them.
           </p>
         </div>
-        <UserButton />
+        <button type="button" onClick={() => writeAccount(null)} className="h-9 shrink-0 rounded-lg border border-line px-3 text-xs font-semibold">
+          Sign out
+        </button>
       </div>
 
       <section className="rounded-xl border border-line bg-surface p-4">
@@ -168,10 +178,6 @@ function ClaimPage() {
           ))}
         </ul>
       </section>
-
-      <a href="/poster.png" className="text-sm text-accent">
-        Live poster
-      </a>
     </div>
   );
 }
