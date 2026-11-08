@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useId, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { classifyQuery, parseChain, chainMeta, type ChainMeta } from "@/lib/chains";
 import { ConnectButton } from "@/components/connect";
 import { MemoryTracker } from "@/components/extras";
@@ -106,6 +106,26 @@ function SearchForm() {
 
 function AuthSlot() {
   const account = useAccount();
+  useEffect(() => {
+    const allowed = new Set(["https://t3x.futuret3ch.com.au", "https://t3x-tawny.vercel.app", "https://t3x-futuret3ch.vercel.app"]);
+    function onMessage(event: MessageEvent) {
+      if (!allowed.has(event.origin)) return;
+      const data = event.data as { type?: string; username?: string; email?: string };
+      if (data?.type !== "t3x-portal-user" || !data.username) return;
+      const current = window.localStorage.getItem("t3x-account");
+      if (current && !current.includes('"token":"portal"')) return;
+      writeAccount({
+        token: "portal",
+        id: "portal",
+        email: data.email || "",
+        phone: "",
+        username: data.username,
+      });
+    }
+    window.addEventListener("message", onMessage);
+    window.parent?.postMessage({ type: "t3x-scanner-ready" }, "*");
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
   if (!account) {
     return (
       <a href="https://t3x.futuret3ch.com.au/login" className="inline-flex h-9 items-center rounded-lg px-2 text-xs font-semibold text-fg">

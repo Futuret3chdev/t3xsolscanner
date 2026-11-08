@@ -87,6 +87,30 @@ function ClaimPage() {
     }
   }
 
+  if (account?.token === "portal") {
+    return (
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-5">
+        <p className="text-xs font-semibold tracking-widest text-accent uppercase">Airdrop</p>
+        <h1 className="text-3xl font-semibold tracking-tight">Signed in as @{account.username}</h1>
+        <p className="text-sm text-pretty text-muted">
+          This is your portal account. Every full $20 swapped or bridged is recorded. T3X will be paid once it becomes available.
+        </p>
+        <a href="https://t3x.futuret3ch.com.au/claims" className="inline-flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-bg">
+          Open your claims
+        </a>
+        <section className="overflow-hidden rounded-xl border border-line">
+          <div className="border-b border-line px-4 py-3">
+            <h2 className="text-lg font-semibold">Tag leaderboard</h2>
+            <p className="mt-1 text-sm text-muted">
+              Sign in with X and tag the live tags. Each tag counts once. Top 100 get a prize and T3X. 1st $200, 2nd $50, 3rd $10.
+            </p>
+          </div>
+          <iframe title="T3X tag board" src="https://t3x-airdrop.vercel.app/" className="h-[70dvh] min-h-[520px] w-full bg-bg" />
+        </section>
+      </div>
+    );
+  }
+
   if (!account) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-col gap-3 px-4 py-8">
